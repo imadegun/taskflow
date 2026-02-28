@@ -219,7 +219,7 @@ export default function Home() {
               <div className="flex items-center gap-1">
                 <span>Made with</span>
                 <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-                <span>using Next.js & Prisma</span>
+                <span>Madegun 2026</span>
               </div>
               <div className="flex items-center gap-4">
                 <a
