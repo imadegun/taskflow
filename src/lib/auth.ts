@@ -1,12 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { User as UserModel } from "./models";
 import { compare } from "bcryptjs";
-import connectDB from "./mongodb";
 import { db } from "./db";
-
-// Check if we're using MongoDB or SQLite
-const useMongoDB = process.env.MONGODB_URI || process.env.USE_MONGODB === "true";
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -24,50 +19,26 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        if (useMongoDB) {
-          // MongoDB path
-          await connectDB();
-          const user = await UserModel.findOne({ email: credentials.email });
+        const user = await db.user.findUnique({
+          where: { email: credentials.email },
+        });
 
-          if (!user || !user.password) {
-            return null;
-          }
-
-          const passwordMatch = await compare(credentials.password, user.password);
-
-          if (!passwordMatch) {
-            return null;
-          }
-
-          return {
-            id: user._id.toString(),
-            email: user.email,
-            name: user.name,
-            image: user.image,
-          };
-        } else {
-          // SQLite/Prisma path (for local development)
-          const user = await db.user.findUnique({
-            where: { email: credentials.email },
-          });
-
-          if (!user || !user.password) {
-            return null;
-          }
-
-          const passwordMatch = await compare(credentials.password, user.password);
-
-          if (!passwordMatch) {
-            return null;
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            image: user.image,
-          };
+        if (!user || !user.password) {
+          return null;
         }
+
+        const passwordMatch = await compare(credentials.password, user.password);
+
+        if (!passwordMatch) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
       },
     }),
   ],
