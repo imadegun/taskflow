@@ -12,12 +12,28 @@ A modern, full-featured task management application inspired by Todoist. Built w
 - 🏷️ **Labels** - Tag tasks with custom labels
 - 🎯 **Priority Levels** - 5 priority levels (None, Low, Medium, High, Urgent)
 - 📅 **Due Dates** - Set and track due dates with quick date selection
+- 🔔 **Push Notifications** - Get reminders before task deadlines (desktop & mobile)
+- 📎 **Image Attachments** - Attach images to tasks for better context
 - ✅ **Subtasks** - Break down tasks into smaller subtasks
 - 🔍 **Filtering** - View tasks by Today, Upcoming, Completed, or by project
 - 🌙 **Dark Theme** - Modern dark UI design
 - ⌨️ **Keyboard Shortcuts** - Press 'Q' to quickly add tasks
 - 📊 **Statistics** - View task completion stats
 - 📱 **Responsive Design** - Works on desktop and mobile
+- 🔔 **Service Worker** - Background notifications and offline support
+
+### Notification Features
+- Set reminders 1, 2, 3, or 7 days before task due date
+- Native browser notifications on desktop and mobile
+- Automatic reminder checking every 5 minutes
+- Click notifications to open the app directly
+
+### Attachment Features
+- Upload up to 5MB per image (JPEG, PNG, GIF, WebP)
+- Multiple images per task
+- Image preview grid in task details
+- Click to view full-size images in new tab
+- Automatic file organization by user ID in `/public/uploads/`
 
 ## 🛠️ Tech Stack
 
@@ -160,15 +176,39 @@ model User {
 }
 
 model Task {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  completed   Boolean    @default(false)
-  priority    Int        @default(0)
-  dueDate     DateTime?
-  project     Project?   @relation(...)
-  labels      TaskLabel[]
-  subtasks    Subtask[]
+  id           String          @id @default(cuid())
+  title        String
+  description  String?
+  completed    Boolean         @default(false)
+  priority     Int             @default(0)
+  dueDate      DateTime?
+  reminderDays Int?            // Days before due date to send reminder
+  project      Project?        @relation(...)
+  labels       TaskLabel[]
+  subtasks     Subtask[]
+  attachments  TaskAttachment[]
+  reminders    TaskReminder[]
+}
+
+model TaskAttachment {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fileName  String
+  fileUrl   String
+  fileType  String   // image/jpeg, image/png, etc.
+  fileSize  Int      // Size in bytes
+  createdAt DateTime @default(now())
+}
+
+model TaskReminder {
+  id           String   @id @default(cuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  reminderDate DateTime // When to send the reminder
+  isSent       Boolean  @default(false)
+  sentAt       DateTime?
+  createdAt    DateTime @default(now())
 }
 
 model Project {
@@ -184,6 +224,44 @@ model Label {
   color String  @default("#f59e0b")
 }
 ```
+
+## 📎 File Upload Configuration
+
+Uploaded images are stored in `/public/uploads/{userId}/` directory. Make sure your deployment environment has:
+
+1. **Write permissions** for the `public/uploads` directory
+2. **Sufficient disk space** for user uploads
+3. **Backup strategy** for uploaded files (consider using cloud storage like AWS S3 for production)
+
+### Optional: Cloud Storage Setup
+
+For production deployments, consider using cloud storage instead of local disk:
+
+1. **AWS S3**: Configure `AWS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+2. **Cloudflare R2**: Configure `R2_BUCKET`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`
+3. **Vercel Blob**: Use `@vercel/blob` for serverless-compatible storage
+
+## 🔔 Notification Setup
+
+Push notifications work out of the box using the browser's Notification API. No additional configuration is required for basic functionality.
+
+### For Advanced Push Notifications (Optional)
+
+To enable server-sent push notifications (useful for mobile PWA):
+
+1. Generate VAPID keys:
+   ```bash
+   npx web-push generate-vapid-keys
+   ```
+
+2. Add environment variables:
+   ```env
+   NEXT_PUBLIC_VAPID_PUBLIC_KEY=your-public-key
+   VAPID_PRIVATE_KEY=your-private-key
+   VAPID_SUBJECT=mailto:admin@yourdomain.com
+   ```
+
+3. Update the service worker with push event handlers (already included in `public/service-worker.js`)
 
 ## ⌨️ Keyboard Shortcuts
 

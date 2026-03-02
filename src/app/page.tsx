@@ -217,9 +217,9 @@ export default function Home() {
           <footer className="border-t border-slate-800 bg-slate-900/50 py-3 px-4 md:px-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
               <div className="flex items-center gap-1">
-                <span>Made with</span>
+                <span>Madegun</span>
                 <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-                <span>Madegun 2026</span>
+                <span>Gaya 2026</span>
               </div>
               <div className="flex items-center gap-4">
                 <a
@@ -231,7 +231,7 @@ export default function Home() {
                   <Github className="w-3 h-3" />
                   <span>GitHub</span>
                 </a>
-                <span className="hidden sm:inline">Ready for Vercel deployment</span>
+                <span className="hidden sm:inline">Vercel deployment</span>
               </div>
             </div>
           </footer>

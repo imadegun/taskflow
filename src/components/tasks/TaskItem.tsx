@@ -17,6 +17,9 @@ import {
   Plus,
   Folder,
   Clock,
+  Bell,
+  Paperclip,
+  Image as ImageIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -291,6 +294,29 @@ export function TaskItem({ task }: TaskItemProps) {
                 />
               )}
 
+              {/* Reminder indicator */}
+              {task.reminderDays && task.dueDate && !task.completed && (
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/30"
+                  title={`Reminder set for ${task.reminderDays} day${task.reminderDays > 1 ? "s" : ""} before`}
+                >
+                  <Bell className="w-3 h-3 mr-1" />
+                  {task.reminderDays}d
+                </Badge>
+              )}
+
+              {/* Attachment indicator */}
+              {task.attachments && task.attachments.length > 0 && (
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-purple-500/10 text-purple-400 border-purple-500/30"
+                >
+                  <Paperclip className="w-3 h-3 mr-1" />
+                  {task.attachments.length}
+                </Badge>
+              )}
+
               {/* Subtask progress */}
               {totalSubtasks > 0 && (
                 <span className="text-xs text-slate-400">
@@ -446,6 +472,42 @@ export function TaskItem({ task }: TaskItemProps) {
                 </Button>
               </div>
             </div>
+
+            {/* Attachments */}
+            {task.attachments && task.attachments.length > 0 && (
+              <div className="space-y-2 pt-2">
+                <h4 className="text-xs font-medium text-slate-400 uppercase flex items-center gap-1">
+                  <Paperclip className="w-3 h-3" />
+                  Attachments
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {task.attachments.map((att) => (
+                    <a
+                      key={att.id}
+                      href={att.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative aspect-square rounded-lg overflow-hidden bg-slate-800 border border-slate-700 hover:border-slate-600 transition-all"
+                    >
+                      {att.fileType.startsWith("image/") ? (
+                        <img
+                          src={att.fileUrl}
+                          alt={att.fileName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ImageIcon className="w-8 h-8 text-slate-500" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                        <span className="text-xs text-white truncate">{att.fileName}</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Labels */}
             {task.labels.length > 0 && (

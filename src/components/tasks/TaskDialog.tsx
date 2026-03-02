@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTaskStore } from "@/store/taskStore";
 import {
   Dialog,
@@ -34,10 +34,29 @@ import {
   Plus,
   Trash2,
   Sparkles,
+  Image as ImageIcon,
+  Upload,
+  Bell,
+  Paperclip,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+
+interface Attachment {
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+}
+
+const REMINDER_OPTIONS = [
+  { value: 0, label: "No reminder" },
+  { value: 1, label: "1 day before" },
+  { value: 2, label: "2 days before" },
+  { value: 3, label: "3 days before" },
+  { value: 7, label: "1 week before" },
+];
 
 interface TaskDialogProps {
   open: boolean;
@@ -68,11 +87,15 @@ export function TaskDialog({ open, onOpenChange }: TaskDialogProps) {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState(0);
   const [dueDate, setDueDate] = useState<Date | undefined>();
+  const [reminderDays, setReminderDays] = useState<number>(0);
   const [projectId, setProjectId] = useState<string>(selectedProjectId || NO_PROJECT_VALUE);
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [subtasks, setSubtasks] = useState<string[]>([]);
   const [newSubtask, setNewSubtask] = useState("");
   const [showMore, setShowMore] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset project when selectedProjectId changes
   useEffect(() => {
@@ -95,9 +118,11 @@ export function TaskDialog({ open, onOpenChange }: TaskDialogProps) {
           description,
           priority,
           dueDate: dueDate?.toISOString(),
+          reminderDays: reminderDays > 0 ? reminderDays : null,
           projectId: projectId === NO_PROJECT_VALUE ? null : projectId || null,
           labelIds: selectedLabels,
           subtasks: subtasks.map((title, index) => ({ title, order: index })),
+          attachments: attachments.length > 0 ? attachments : undefined,
         }),
       });
 
@@ -123,11 +148,81 @@ export function TaskDialog({ open, onOpenChange }: TaskDialogProps) {
     setDescription("");
     setPriority(0);
     setDueDate(undefined);
+    setReminderDays(0);
     setProjectId(selectedProjectId || NO_PROJECT_VALUE);
     setSelectedLabels([]);
     setSubtasks([]);
     setNewSubtask("");
     setShowMore(false);
+    setAttachments([]);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    const newAttachments: Attachment[] = [];
+
+    for (const file of Array.from(files)) {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          newAttachments.push({
+            fileName: data.fileName,
+            fileUrl: data.fileUrl,
+            fileType: file.type,
+            fileSize: file.size,
+          });
+        } else {
+          const error = await response.json();
+          toast({
+            title: "Upload failed",
+            description: error.error || `Failed to upload ${file.name}`,
+            variant: "destructive",
+          });
+        }
+      } catch {
+        toast({
+          title: "Upload failed",
+          description: `Failed to upload ${file.name}`,
+          variant: "destructive",
+        });
+      }
+    }
+
+    setAttachments((prev) => [...prev, ...newAttachments]);
+    setIsUploading(false);
+
+    if (newAttachments.length > 0) {
+      toast({
+        title: "Files uploaded",
+        description: `${newAttachments.length} file(s) attached successfully`,
+      });
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
   const toggleLabel = (labelId: string) => {
@@ -302,6 +397,104 @@ export function TaskDialog({ open, onOpenChange }: TaskDialogProps) {
 
           {showMore && (
             <div className="space-y-4">
+              {/* Reminder Selection */}
+              <div className="space-y-2">
+                <Label className="text-slate-300 flex items-center gap-2">
+                  <Bell className="w-4 h-4" />
+                  Reminder
+                </Label>
+                <Select
+                  value={reminderDays.toString()}
+                  onValueChange={(v) => setReminderDays(parseInt(v))}
+                  disabled={!dueDate}
+                >
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    {REMINDER_OPTIONS.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value.toString()}
+                        className="text-white focus:bg-slate-600"
+                        disabled={option.value > 0 && !dueDate}
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!dueDate && reminderDays > 0 && (
+                  <p className="text-xs text-amber-400">
+                    Set a due date to enable reminders
+                  </p>
+                )}
+              </div>
+
+              {/* Attachments */}
+              <div className="space-y-2">
+                <Label className="text-slate-300 flex items-center gap-2">
+                  <Paperclip className="w-4 h-4" />
+                  Attachments
+                </Label>
+                
+                {/* Attachment List */}
+                {attachments.length > 0 && (
+                  <div className="space-y-2">
+                    {attachments.map((att, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 bg-slate-700 border border-slate-600 rounded-md px-3 py-2"
+                      >
+                        <ImageIcon className="w-4 h-4 text-slate-400" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white truncate">{att.fileName}</p>
+                          <p className="text-xs text-slate-400">{formatFileSize(att.fileSize)}</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeAttachment(index)}
+                          className="text-slate-400 hover:text-red-400 h-8 w-8"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Upload Button */}
+                <div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    multiple
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 w-full"
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-2" />
+                    )}
+                    {isUploading ? "Uploading..." : "Add Images"}
+                  </Button>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Max 5MB per file. Supported: JPEG, PNG, GIF, WebP
+                  </p>
+                </div>
+              </div>
+
               {/* Labels */}
               {labels.length > 0 && (
                 <div className="space-y-2">

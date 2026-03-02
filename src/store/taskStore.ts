@@ -1,5 +1,22 @@
 import { create } from "zustand";
 
+export interface TaskAttachment {
+  id: string;
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+  createdAt: string;
+}
+
+export interface TaskReminder {
+  id: string;
+  reminderDate: string;
+  isSent: boolean;
+  sentAt: string | null;
+  createdAt: string;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -7,11 +24,14 @@ export interface Task {
   completed: boolean;
   priority: number;
   dueDate: string | null;
+  reminderDays: number | null;
   order: number;
   projectId: string | null;
   project: { id: string; name: string; color: string } | null;
   labels: { label: { id: string; name: string; color: string } }[];
   subtasks: { id: string; title: string; completed: boolean; order: number }[];
+  attachments: TaskAttachment[];
+  reminders: TaskReminder[];
   createdAt: string;
   updatedAt: string;
 }

@@ -15,13 +15,37 @@ A modern, intuitive task management application inspired by Todoist. Built with 
 - 🏷️ **Labels** - Tag tasks with colorful labels
 - 🎯 **Priority Levels** - 5 priority levels (None, Low, Medium, High, Urgent)
 - 📅 **Due Dates** - Set and track due dates with calendar picker
-- 📋 **Subtasks** - Break down tasks into smaller steps
+- 🔔 **Push Notifications** - Get reminders before task deadlines (desktop & mobile)
+- 📎 **Image Attachments** - Attach images to tasks for better context
+-  **Subtasks** - Break down tasks into smaller steps
 - 🔍 **Filtering** - View tasks by Today, Upcoming, Completed
 - 🌙 **Dark Theme** - Beautiful dark mode UI
 - ⌨️ **Keyboard Shortcuts** - Press 'Q' to quickly add tasks
 - 📊 **Statistics** - Track your productivity with stats
 
-## 🚀 Quick Start
+### 🔔 Reminder System
+Set custom reminders for your tasks:
+- Choose reminders 1, 2, 3, or 7 days before due date
+- Native browser notifications on desktop and mobile
+- Service worker for background notifications
+- Click notifications to open tasks directly
+
+### 📎 Attachments
+Enhance tasks with image attachments:
+- Upload JPEG, PNG, GIF, and WebP images
+- Maximum 5MB per file
+- Multiple images per task
+- Image preview grid in task details
+- Click to view full-size images
+
+### 📱 Mobile Support
+TaskFlow works great on mobile devices:
+- Responsive design adapts to any screen size
+- Touch-friendly interface
+- Mobile-optimized task creation and editing
+- Push notifications work on mobile browsers
+
+## � Quick Start
 
 ### Prerequisites
 

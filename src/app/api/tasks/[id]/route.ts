@@ -30,6 +30,12 @@ export async function GET(
         subtasks: {
           orderBy: { order: "asc" },
         },
+        attachments: {
+          orderBy: { createdAt: "asc" },
+        },
+        reminders: {
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 
@@ -79,6 +85,7 @@ export async function PUT(
         completed: body.completed,
         priority: body.priority,
         dueDate: body.dueDate ? new Date(body.dueDate) : null,
+        reminderDays: body.reminderDays,
         projectId: body.projectId,
       },
       include: {
@@ -89,6 +96,12 @@ export async function PUT(
           },
         },
         subtasks: true,
+        attachments: {
+          orderBy: { createdAt: "asc" },
+        },
+        reminders: {
+          orderBy: { createdAt: "desc" },
+        },
       },
     });
 

@@ -63,6 +63,12 @@ export async function GET(request: NextRequest) {
         subtasks: {
           orderBy: { order: "asc" },
         },
+        attachments: {
+          orderBy: { createdAt: "asc" },
+        },
+        reminders: {
+          orderBy: { createdAt: "desc" },
+        },
       },
       orderBy: [{ completed: "asc" }, { order: "asc" }, { createdAt: "desc" }],
     });
@@ -84,7 +90,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { title, description, priority, dueDate, projectId, labelIds, subtasks } =
+    const { title, description, priority, dueDate, reminderDays, projectId, labelIds, subtasks, attachments } =
       await request.json();
 
     if (!title) {
@@ -106,6 +112,7 @@ export async function POST(request: NextRequest) {
         description,
         priority: priority || 0,
         dueDate: dueDate ? new Date(dueDate) : null,
+        reminderDays: reminderDays || null,
         projectId: projectId || null,
         userId: session.user.id,
         order: (maxOrder._max.order || 0) + 1,
@@ -124,6 +131,16 @@ export async function POST(request: NextRequest) {
               })),
             }
           : undefined,
+        attachments: attachments
+          ? {
+              create: attachments.map((att: { fileName: string; fileUrl: string; fileType: string; fileSize: number }) => ({
+                fileName: att.fileName,
+                fileUrl: att.fileUrl,
+                fileType: att.fileType,
+                fileSize: att.fileSize,
+              })),
+            }
+          : undefined,
       },
       include: {
         project: true,
@@ -134,6 +151,12 @@ export async function POST(request: NextRequest) {
         },
         subtasks: {
           orderBy: { order: "asc" },
+        },
+        attachments: {
+          orderBy: { createdAt: "asc" },
+        },
+        reminders: {
+          orderBy: { createdAt: "desc" },
         },
       },
     });

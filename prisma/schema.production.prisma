@@ -86,6 +86,7 @@ model Task {
   completed   Boolean  @default(false)
   priority    Int      @default(0)
   dueDate     DateTime?
+  reminderDays Int?    // Days before due date to send reminder
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -95,6 +96,30 @@ model Task {
   project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
   labels      TaskLabel[]
   subtasks    Subtask[]
+  attachments TaskAttachment[]
+  reminders   TaskReminder[]
+}
+
+model TaskAttachment {
+  id          String   @id @default(cuid())
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  fileName    String
+  fileUrl     String
+  fileType    String
+  fileSize    Int
+  createdAt   DateTime @default(now())
+  order       Int      @default(0)
+}
+
+model TaskReminder {
+  id          String   @id @default(cuid())
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  reminderDate DateTime
+  isSent      Boolean  @default(false)
+  sentAt      DateTime?
+  createdAt   DateTime @default(now())
 }
 
 model Subtask {
