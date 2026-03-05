@@ -247,7 +247,7 @@ export function TaskItem({ task }: TaskItemProps) {
             </div>
 
             {/* Task Meta */}
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               {/* Labels */}
               {task.labels.length > 0 && (
                 <div className="hidden sm:flex gap-1">
