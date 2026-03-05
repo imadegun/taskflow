@@ -246,84 +246,88 @@ export function TaskItem({ task }: TaskItemProps) {
               )}
             </div>
 
-            {/* Task Meta */}
-            <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-              {/* Labels */}
-              {task.labels.length > 0 && (
-                <div className="hidden sm:flex gap-1">
-                  {task.labels.slice(0, 2).map(({ label }) => (
-                    <Badge
-                      key={label.id}
-                      variant="outline"
-                      className="text-xs border-0"
-                      style={{ backgroundColor: label.color + "20", color: label.color }}
-                    >
-                      {label.name}
-                    </Badge>
-                  ))}
-                  {task.labels.length > 2 && (
-                    <Badge variant="outline" className="text-xs border-slate-600 text-slate-400">
-                      +{task.labels.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              )}
+            {/* Task Meta - Desktop: show on hover, Mobile: always visible */}
+            <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-shrink-0">
+              {/* Desktop-only metadata indicators */}
+              <div className="hidden sm:flex items-center gap-2">
+                {/* Labels */}
+                {task.labels.length > 0 && (
+                  <div className="flex gap-1">
+                    {task.labels.slice(0, 2).map(({ label }) => (
+                      <Badge
+                        key={label.id}
+                        variant="outline"
+                        className="text-xs border-0"
+                        style={{ backgroundColor: label.color + "20", color: label.color }}
+                      >
+                        {label.name}
+                      </Badge>
+                    ))}
+                    {task.labels.length > 2 && (
+                      <Badge variant="outline" className="text-xs border-slate-600 text-slate-400">
+                        +{task.labels.length - 2}
+                      </Badge>
+                    )}
+                  </div>
+                )}
 
-              {/* Due Date */}
-              {task.dueDate && (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "text-xs",
-                    isOverdue
-                      ? "bg-red-500/20 text-red-400 border-red-500/30"
-                      : isDueToday
-                      ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                      : "bg-slate-800 text-slate-300 border-slate-700"
-                  )}
-                >
-                  <Calendar className="w-3 h-3 mr-1" />
-                  {format(new Date(task.dueDate), "MMM d")}
-                </Badge>
-              )}
+                {/* Due Date */}
+                {task.dueDate && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs",
+                      isOverdue
+                        ? "bg-red-500/20 text-red-400 border-red-500/30"
+                        : isDueToday
+                        ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                        : "bg-slate-800 text-slate-300 border-slate-700"
+                    )}
+                  >
+                    <Calendar className="w-3 h-3 mr-1" />
+                    {format(new Date(task.dueDate), "MMM d")}
+                  </Badge>
+                )}
 
-              {/* Priority */}
-              {task.priority > 0 && (
-                <Flag
-                  className={cn("w-4 h-4", priorityColors[task.priority as keyof typeof priorityColors])}
-                />
-              )}
+                {/* Priority */}
+                {task.priority > 0 && (
+                  <Flag
+                    className={cn("w-4 h-4", priorityColors[task.priority as keyof typeof priorityColors])}
+                  />
+                )}
 
-              {/* Reminder indicator */}
-              {task.reminderDays && task.dueDate && !task.completed && (
-                <Badge
-                  variant="outline"
-                  className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/30"
-                  title={`Reminder set for ${task.reminderDays} day${task.reminderDays > 1 ? "s" : ""} before`}
-                >
-                  <Bell className="w-3 h-3 mr-1" />
-                  {task.reminderDays}d
-                </Badge>
-              )}
+                {/* Reminder indicator */}
+                {task.reminderDays && task.dueDate && !task.completed && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-blue-500/10 text-blue-400 border-blue-500/30"
+                    title={`Reminder set for ${task.reminderDays} day${task.reminderDays > 1 ? "s" : ""} before`}
+                  >
+                    <Bell className="w-3 h-3 mr-1" />
+                    {task.reminderDays}d
+                  </Badge>
+                )}
 
-              {/* Attachment indicator */}
-              {task.attachments && task.attachments.length > 0 && (
-                <Badge
-                  variant="outline"
-                  className="text-xs bg-purple-500/10 text-purple-400 border-purple-500/30"
-                >
-                  <Paperclip className="w-3 h-3 mr-1" />
-                  {task.attachments.length}
-                </Badge>
-              )}
+                {/* Attachment indicator */}
+                {task.attachments && task.attachments.length > 0 && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs bg-purple-500/10 text-purple-400 border-purple-500/30"
+                  >
+                    <Paperclip className="w-3 h-3 mr-1" />
+                    {task.attachments.length}
+                  </Badge>
+                )}
 
-              {/* Subtask progress */}
-              {totalSubtasks > 0 && (
-                <span className="text-xs text-slate-400">
-                  {completedSubtasks}/{totalSubtasks}
-                </span>
-              )}
+                {/* Subtask progress */}
+                {totalSubtasks > 0 && (
+                  <span className="text-xs text-slate-400">
+                    {completedSubtasks}/{totalSubtasks}
+                  </span>
+                )}
+              </div>
 
+              {/* Action Menu - Always visible on both mobile and desktop */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
